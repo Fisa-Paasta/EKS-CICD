@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_USERNAME/EKS-CICD  # 실제 EKS-CICD 저장소 URL
+    repoURL: https://github.com/Fisa-Paasta/EKS-CICD.git
     targetRevision: HEAD
     path: nginx-test/k8s
   destination:
