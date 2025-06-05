@@ -3,13 +3,14 @@ kind: Deployment
 metadata:
   name: backend-app
   annotations:
+    # ECR Image Updater 설정
     argocd-image-updater.argoproj.io/image-list: backend=831645374517.dkr.ecr.ap-northeast-2.amazonaws.com/paasta-backend
     argocd-image-updater.argoproj.io/backend.update-strategy: latest
     argocd-image-updater.argoproj.io/write-back-method: git
 spec:
   replicas: 3
   strategy:
-    type: RollingUpdate  # 무중단 배포
+    type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
@@ -29,7 +30,6 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "prod"
-        # 무중단 배포를 위한 Health Check
         readinessProbe:
           httpGet:
             path: /actuator/health
@@ -53,4 +53,3 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
-      # imagePullSecrets 제거 - EKS 노드 IAM 역할로 ECR 접근
