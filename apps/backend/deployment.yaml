@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-app
+  annotations:
+    # 이 부분이 핵심! Image Updater가 Harbor를 감지하게 함
+    argocd-image-updater.argoproj.io/image-list: backend=your-harbor.com/project/backend
+    argocd-image-updater.argoproj.io/backend.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate  # 무중단 배포
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: backend-app
+  template:
+    metadata:
+      labels:
+        app: backend-app
+    spec:
+      containers:
+      - name: backend
+        image: your-harbor.com/project/backend:latest  # 이 태그가 자동으로 업데이트됨
+        ports:
+        - containerPort: 8080
+        # 무중단 배포를 위한 Health Check
+        readinessProbe:
+          httpGet:
+            path: /health  # 백엔드에 이 엔드포인트 필요
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
