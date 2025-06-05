@@ -3,12 +3,9 @@ kind: Deployment
 metadata:
   name: backend-app
   annotations:
-    # ECR Image Updater 설정
     argocd-image-updater.argoproj.io/image-list: backend=831645374517.dkr.ecr.ap-northeast-2.amazonaws.com/paasta-backend
     argocd-image-updater.argoproj.io/backend.update-strategy: latest
     argocd-image-updater.argoproj.io/write-back-method: git
-    # ECR 인증 정보 (필요시)
-    argocd-image-updater.argoproj.io/backend.pull-secret: ecr-secret
 spec:
   replicas: 3
   strategy:
@@ -26,32 +23,16 @@ spec:
     spec:
       containers:
       - name: backend
-        image: 831645374517.dkr.ecr.ap-northeast-2.amazonaws.com/paasta-backend:latest  # ECR 이미지로 변경
+        image: 831645374517.dkr.ecr.ap-northeast-2.amazonaws.com/paasta-backend:latest
         ports:
         - containerPort: 8080
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "prod"
-        - name: DB_HOST
-          value: "postgres-service"  # PostgreSQL 서비스명
-        - name: DB_PORT
-          value: "5432"
-        - name: DB_NAME
-          value: "paastadb"
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: username
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: password
         # 무중단 배포를 위한 Health Check
         readinessProbe:
           httpGet:
-            path: /actuator/health  # Spring Boot Actuator 엔드포인트
+            path: /actuator/health
             port: 8080
           initialDelaySeconds: 15
           periodSeconds: 5
@@ -72,6 +53,4 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
-      # ECR 이미지 Pull을 위한 Secret (필요시)
-      imagePullSecrets:
-      - name: ecr-secret
+      # imagePullSecrets 제거 - EKS 노드 IAM 역할로 ECR 접근
