@@ -22,6 +22,9 @@ spec:
       labels:
         app: backend-app
     spec:
+      # 🎯 Private 서브넷에만 배포
+      nodeSelector:
+        subnet-type: private
       containers:
       - name: backend
         image: 831645374517.dkr.ecr.ap-northeast-2.amazonaws.com/paasta-backend:latest
@@ -30,21 +33,22 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "prod"
+        # 🔧 Spring Boot Health Actuator 경로로 수정
         readinessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        livenessProbe:
           httpGet:
             path: /actuator/health
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 10
           failureThreshold: 3
         resources:
           requests:
